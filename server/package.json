@@ -1,0 +1,29 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "node index.js",
+    "backend": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ckeditor/ckeditor5-build-classic": "^36.0.1",
+    "bcrypt": "^5.1.0",
+    "body-parser": "^1.20.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^6.9.0",
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.6.1"
+  },
+  "keywords": [],
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
