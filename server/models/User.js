@@ -39,6 +39,13 @@ const userSchema = mongoose.Schema({
     tokenExp: {
         type: Number
     },
+    postCount: {
+        type: Number,
+        default: 0
+    },
+    bookGoal: {
+        type: Number,
+    },
     notes: [
         {
           type: mongoose.Schema.Types.ObjectId,

@@ -60,12 +60,18 @@ const notelistSchema = mongoose.Schema({
   bookdatetime: {
     type: Date,
   },
-  notes: [
+  likes:{
+    type: Number,
+    default : 0,
+  },
+  likesBy: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Notelist",
+      ref: 'User',
     },
   ],
+
+ 
 });
 notelistSchema.statics.searchByTitle = async function(keyword) {
     const result = await this.find({ title: { $regex: keyword, $options: "i" } });
@@ -75,3 +81,14 @@ notelistSchema.statics.searchByTitle = async function(keyword) {
 const Notelist = mongoose.model("Notelist", notelistSchema);
 
 module.exports = { Notelist };
+notelistSchema.pre('save', async function(next) {
+    const note = this;
+  
+    try {
+      // 노트 작성자의 postCount 값을 1 증가시킴
+      await User.updateOne({ _id: note.author }, { $inc: { postCount: 1 } });
+      next();
+    } catch (err) {
+      next(err);
+    }
+  });

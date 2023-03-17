@@ -182,7 +182,31 @@ app.get("/api/notelist/user", auth, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-app.post("/api/notelist/user", auth, (req, res) => {
+app.get("/api/notelist/post", (req, res) => {
+  User.find({})
+    .sort({ postCount: -1 }) // postCount 기준으로 내림차순 정렬
+    .exec((err, users) => {
+      if (err) return res.status(400).send(err);
+      return res.status(200).json({ success: true, users });
+    });
+});
+app.put("/api/users/:id/bookgoal", (req, res) => {
+  const userId = req.params.id;
+  const { bookGoal } = req.body;
+
+  User.findByIdAndUpdate(
+    userId,
+    { bookGoal: bookGoal },
+    { new: true },
+    (err, updatedUser) => {
+      if (err) return res.status(500).send(err);
+      return res.status(200).json(updatedUser);
+    }
+  );
+});
+
+
+app.post("/api/notelist/user", auth, (req, res, next) => {
   const notelist = new Notelist(req.body);
 
   // 현재 로그인한 유저의 정보를 author로 추가합니다.
@@ -190,8 +214,22 @@ app.post("/api/notelist/user", auth, (req, res) => {
 
   notelist.save((err, notelistInfo) => {
     if (err) return res.json({ success: false, err });
-    return res.status(200).json({
-      success: true,
+    // 노트 리스트 저장 후, POSTCOUNT 값을 업데이트합니다.
+    Notelist.countDocuments({ author: req.user._id }, (err, count) => {
+      if (err) return next(err);
+
+      User.findOneAndUpdate(
+        { _id: req.user._id },
+        { postCount: count },
+        { new: true },
+        (err, userInfo) => {
+          if (err) return next(err);
+          res.status(200).json({
+            success: true,
+            userInfo,
+          });
+        }
+      );
     });
   });
 });
@@ -218,6 +256,22 @@ app.delete("/api/notelist/:id", (req, res) => {
     } else {
       console.log("삭제 완료");
       res.json({ message: "삭제 완료" });
+    }
+  });
+
+});
+app.get("/api/user/:id/bookgoal", (req, res) => {
+  const id = req.params.id;
+
+  User.findOne({ _id: id }, (err, result) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ message: "조회 실패" });
+    } else if (!result) {
+      res.status(404).json({ message: "해당하는 사용자가 없습니다." });
+    } else {
+      console.log("조회 완료");
+      res.json(result);
     }
   });
 });
@@ -285,6 +339,64 @@ app.put('/api/notelist/:id/hit', async (req, res) => {
     res.status(500).json({ message: '조회수 증가 실패!' });
   }
 });
+
+/// 좋아요
+app.put('/api/notelist/:id/like', auth,async (req, res) => {
+  const noteId = req.params.id;
+  const userId = req.user._id; // 로그인한 사용자의 ID
+
+  try {
+    // 노트 조회
+    const note = await Notelist.findById(noteId);
+
+    // 중복 좋아요 확인
+    if (userId && note.likesBy.includes(userId)) {
+
+     
+      return res.status(400).json({ message: '이미 좋아요를 눌렀습니다.' });
+    }
+
+    // 좋아요 증가
+    note.likesBy.push(userId);
+    note.likes++;
+    // 노트 업데이트
+    const updatedNote = await note.save();
+
+    res.json({ message: '좋아요가 추가되었습니다.', note: updatedNote });
+    
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '좋아요가 안되었요'})
+  }
+});
+
+app.delete('/api/notelist/:id/unlike', auth,async (req, res) => {
+  const noteId = req.params.id;
+  const userId = req.user._id; // 로그인한 사용자의 ID
+
+  try {
+    // 노트 조회
+    const note = await Notelist.findById(noteId);
+
+    // 좋아요 정보 삭제
+    if (userId) {
+      const index = note.likesBy.indexOf(userId);
+      if (index !== -1) {
+        note.likesBy.splice(index, 1);
+        note.likes--;
+      }
+    }
+
+    // 노트 업데이트
+    const updatedNote = await note.save();
+
+    res.json({ message: '좋아요가 취소되었습니다.', note: updatedNote });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '좋아요 취소가 안되었어요'})
+  }
+});
+
 app.post("/api/users/login", (req, res) => {
   // 요청된 이메일을 데이터베이스에서 있는지 찾는다.
   User.findOne({ email: req.body.email }, (err, user) => {
@@ -312,6 +424,7 @@ app.post("/api/users/login", (req, res) => {
     });
   });
 });
+
 // role 1 어드민    role 2 특정 부서 어드민
 // role 0 -> 일반유저   role 0이 아니면  관리자
 app.get("/api/users/auth", auth, (req, res) => {
