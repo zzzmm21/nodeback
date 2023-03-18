@@ -516,11 +516,13 @@ app.post('/api/meeting/create', uploadmt.none(), (req, res) => {
 
 app.get('/api/meeting/all', (req, res) => {
   Meeting.find({})
+    .populate('creator')
     .then((meetings) => {
       const transformedMeetings = meetings.map((meeting) => {
         return {
           ...meeting._doc,
           firstDate: new Date(meeting.firstDate).toISOString().substring(0, 10),
+          creatorName: meeting.creator.name,
         };
         // toISOString() ISO 8601 형식의 문자열로 변환: 이 문자열은 "YYYY-MM-DDTHH:mm:ss.sssZ" 형식
       });
