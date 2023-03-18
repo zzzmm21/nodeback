@@ -7,10 +7,12 @@ const meetingSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
-    members: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }],
+    members: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
     title: {
       type: String,
       // required: true,
@@ -31,10 +33,6 @@ const meetingSchema = mongoose.Schema(
     },
     hashtags: {
       type: [String],
-      // required: true,
-    },
-    location: {
-      type: String,
       // required: true,
     },
     category: {
@@ -65,13 +63,25 @@ const meetingSchema = mongoose.Schema(
       type: String,
       // required: true,
     },
-    firstDate: {
-      type: String,
-      // required: true,
-    },
     imgFile: {
       type: Buffer,
     },
+    order: [
+      {
+        date: {
+          type: String,
+        },
+        location: {
+          type: String,
+        },
+        attendance: [
+          {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+          },
+        ],
+      },
+    ],
   },
   { timestamps: true }
 );
