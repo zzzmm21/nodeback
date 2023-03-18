@@ -3,6 +3,14 @@ const mongoose = require('mongoose');
 const meetingSchema = mongoose.Schema(
   {
     autoIncrementField: { type: Number, default: 0 },
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    members: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
     title: {
       type: String,
       // required: true,
@@ -65,7 +73,7 @@ const meetingSchema = mongoose.Schema(
       type: Buffer,
     },
   },
-  { timestamp: true }
+  { timestamps: true }
 );
 
 meetingSchema.pre('save', async function (next) {
