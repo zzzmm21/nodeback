@@ -1,138 +1,133 @@
-const express = require("express");
+const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 5000
-const http = require('http')
-const bodyParser = require("body-parser");
-const { User } = require("./models/User");
-const { auth } = require("./middleware/auth");
-const { Category } = require("./models/Category");
-const cors = require("cors");
-const socketio = require('socket.io')
-const server = http.createServer(app)
-const { addUser, removeUser, getUser, getUsersInRoom } = require('./users.js')
-const router = require('./router')
-app.use(router)
+const PORT = process.env.PORT || 5000;
+const http = require('http');
+const bodyParser = require('body-parser');
+const { User } = require('./models/User');
+const { auth } = require('./middleware/auth');
+const { Category } = require('./models/Category');
+const cors = require('cors');
+const socketio = require('socket.io');
+const server = http.createServer(app);
+const { addUser, removeUser, getUser, getUsersInRoom } = require('./users.js');
+const router = require('./router');
+
+const { Meeting } = require('./models/Meeting');
+
+app.use(router);
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
-const io = require("socket.io")(server, {
+const io = require('socket.io')(server, {
   cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-    allowedHeaders: ["my-custom-header"],
-    credentials: true
-  }
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['my-custom-header'],
+    credentials: true,
+  },
 });
 
 server.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-
-
-
-
-
 io.on('connection', (socket) => {
-  console.log('새로운 connection이 발생하였습니다.')
+  console.log('새로운 connection이 발생하였습니다.');
   socket.on('join', ({ name, room }, callback) => {
-    const { error, user } = addUser({ id: socket.id, name, room })
-    if (error) return callback({ error: '에러가 발생했어요.' })
-  
+    const { error, user } = addUser({ id: socket.id, name, room });
+    if (error) return callback({ error: '에러가 발생했어요.' });
+
     socket.emit('message', {
       user: 'admin',
       text: `${user.name}, ${user.room}에 오신것을 환영합니다.`,
-    })
+    });
     socket.broadcast.to(user.room).emit('message', {
       user: 'admin',
       text: `${user.name} 님이 가입하셨습니다.`,
-    })
+    });
     io.to(user.room).emit('roomData', {
       room: user.room,
       users: getUsersInRoom(user.room),
-    })
-    socket.join(user.room)
-  
-    callback()
-  })
+    });
+    socket.join(user.room);
+
+    callback();
+  });
   socket.on('sendMessage', (message, callback) => {
-    const user = getUser(socket.id)
-    io.to(user.room).emit('message', { user: user.name, text: message })
-    callback()
-  })
+    const user = getUser(socket.id);
+    io.to(user.room).emit('message', { user: user.name, text: message });
+    callback();
+  });
   socket.on('disconnect', () => {
-    const user = removeUser(socket.id)
+    const user = removeUser(socket.id);
 
     if (user) {
       io.to(user.room).emit('message', {
         user: 'Admin',
         text: `${user.name} 님이 방을 나갔습니다.`,
-      })
+      });
       io.to(user.room).emit('roomData', {
         room: user.room,
         users: getUsersInRoom(user.room),
-      })
+      });
     }
-    console.log('유저가 떠났어요.')
-  })
-})
+    console.log('유저가 떠났어요.');
+  });
+});
 // application/json
 app.use(bodyParser.json());
-const cookieParser = require("cookie-parser");
+const cookieParser = require('cookie-parser');
 
 app.use(cookieParser());
 app.use(cors());
-app.get("/", (req, res) => {
-  res.send("Hello, Expresasassafs!");
+app.get('/', (req, res) => {
+  res.send('Hello, Expresasassafs!');
 });
 
-app.get("/api/hello", (req, res) => {
-  res.send("안녕하세요");
+app.get('/api/hello', (req, res) => {
+  res.send('안녕하세요');
 });
 
-const config = require("./config/key");
-const mongoose = require("mongoose");
-const { Notelist } = require("./models/Notelist");
-mongoose.set("strictQuery", true);
+const config = require('./config/key');
+const mongoose = require('mongoose');
+const { Notelist } = require('./models/Notelist');
+mongoose.set('strictQuery', true);
 
 mongoose
   .connect(config.mongoURI, {})
-  .then(() => console.log("MongoDB Connected..."))
+  .then(() => console.log('MongoDB Connected...'))
   .catch((arr) => console.log(arr));
 
-
-
-const multer = require("multer");
+const multer = require('multer');
 
 // multer 설정
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); // 파일 저장 경로 설정
+    cb(null, 'uploads/'); // 파일 저장 경로 설정
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + "-" + file.originalname); // 파일 이름 설정
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + '-' + file.originalname); // 파일 이름 설정
   },
 });
-const upload = multer({ storage: storage }).single("file");
+const upload = multer({ storage: storage }).single('file');
 
 // upload 함수 내보내기
 
-app.post("/api/users/register", (req, res) => {
+app.post('/api/users/register', (req, res) => {
   // 파일 업로드 처리
   upload(req, res, (err) => {
     if (err) {
       // 업로드 오류 처리
       if (err instanceof multer.MulterError) {
-        return res.json({ success: false, message: "파일 업로드 오류 발생" });
+        return res.json({ success: false, message: '파일 업로드 오류 발생' });
       } else {
-        return res.json({ success: false, message: "알 수 없는 오류 발생" });
+        return res.json({ success: false, message: '알 수 없는 오류 발생' });
       }
     }
-    
+
     // 클라이언트에서 보낸 데이터 추출
     const { name, email, password, nickname, gender, date } = req.body;
-    
+
     // User 모델 생성
     const user = new User({
       name,
@@ -141,7 +136,6 @@ app.post("/api/users/register", (req, res) => {
       nickname,
       gender,
       date,
-     
     });
 
     // User 모델 저장
@@ -156,24 +150,24 @@ app.post("/api/users/register", (req, res) => {
   });
 });
 
-app.get("/api/category",async (req, res) => {
-  try{
-    const accounts =await Category.find();
+app.get('/api/category', async (req, res) => {
+  try {
+    const accounts = await Category.find();
     res.json(accounts);
-  }catch(err){
+  } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
-app.get("/api/notelist",async (req, res) => {
-  try{
-    const accounts =await Notelist.find();
+app.get('/api/notelist', async (req, res) => {
+  try {
+    const accounts = await Notelist.find();
     res.json(accounts);
-  }catch(err){
+  } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-app.get("/api/notelist/user", auth, async (req, res) => {
+app.get('/api/notelist/user', auth, async (req, res) => {
   try {
     const user = req.user._id;
     const accounts = await Notelist.find({ author: user });
@@ -182,7 +176,7 @@ app.get("/api/notelist/user", auth, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-app.get("/api/notelist/post", (req, res) => {
+app.get('/api/notelist/post', (req, res) => {
   User.find({})
     .sort({ postCount: -1 }) // postCount 기준으로 내림차순 정렬
     .exec((err, users) => {
@@ -190,7 +184,7 @@ app.get("/api/notelist/post", (req, res) => {
       return res.status(200).json({ success: true, users });
     });
 });
-app.put("/api/users/:id/bookgoal", (req, res) => {
+app.put('/api/users/:id/bookgoal', (req, res) => {
   const userId = req.params.id;
   const { bookGoal } = req.body;
 
@@ -205,8 +199,7 @@ app.put("/api/users/:id/bookgoal", (req, res) => {
   );
 });
 
-
-app.post("/api/notelist/user", auth, (req, res, next) => {
+app.post('/api/notelist/user', auth, (req, res, next) => {
   const notelist = new Notelist(req.body);
 
   // 현재 로그인한 유저의 정보를 author로 추가합니다.
@@ -233,7 +226,7 @@ app.post("/api/notelist/user", auth, (req, res, next) => {
     });
   });
 });
-app.post("/api/category", (req, res) => {
+app.post('/api/category', (req, res) => {
   // 회원가에 필요한 정보들을 클라이언트에서 가져오면 그것들을 데이터베이스에 넣어준다.
   const category = new Category(req.body);
 
@@ -244,67 +237,70 @@ app.post("/api/category", (req, res) => {
     });
   });
 });
-app.delete("/api/notelist/:id", (req, res) => {
+app.delete('/api/notelist/:id', (req, res) => {
   const id = req.params.id;
 
   Notelist.findOneAndDelete({ _id: id }, (err, result) => {
     if (err) {
       console.error(err);
-      res.status(500).json({ message: "삭제 실패" });
+      res.status(500).json({ message: '삭제 실패' });
     } else if (!result) {
-      res.status(404).json({ message: "해당하는 노트가 없습니다." });
+      res.status(404).json({ message: '해당하는 노트가 없습니다.' });
     } else {
-      console.log("삭제 완료");
-      res.json({ message: "삭제 완료" });
+      console.log('삭제 완료');
+      res.json({ message: '삭제 완료' });
     }
   });
-
 });
-app.get("/api/user/:id/bookgoal", (req, res) => {
+app.get('/api/user/:id/bookgoal', (req, res) => {
   const id = req.params.id;
 
   User.findOne({ _id: id }, (err, result) => {
     if (err) {
       console.error(err);
-      res.status(500).json({ message: "조회 실패" });
+      res.status(500).json({ message: '조회 실패' });
     } else if (!result) {
-      res.status(404).json({ message: "해당하는 사용자가 없습니다." });
+      res.status(404).json({ message: '해당하는 사용자가 없습니다.' });
     } else {
-      console.log("조회 완료");
+      console.log('조회 완료');
       res.json(result);
     }
   });
 });
-app.get("/api/notelist/:id", (req, res) => {
+app.get('/api/notelist/:id', (req, res) => {
   const id = req.params.id;
-  
+
   Notelist.findOne({ _id: id }, (err, result) => {
     if (err) {
       console.error(err);
-      res.status(500).json({ message: "불러오기 실패!" });
+      res.status(500).json({ message: '불러오기 실패!' });
     } else if (!result) {
-      res.status(404).json({ message: "해당하는 노트가 없습니다." });
+      res.status(404).json({ message: '해당하는 노트가 없습니다.' });
     } else {
-      res.json({ message: "불러오기 완료!", note: result });
+      res.json({ message: '불러오기 완료!', note: result });
     }
   });
 });
-app.put("/api/notelist/:id", (req, res) => {
+app.put('/api/notelist/:id', (req, res) => {
   const id = req.params.id;
   const updatedNote = req.body;
 
-  Notelist.findOneAndUpdate({ _id: id }, updatedNote, { new: true }, (err, result) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ message: "업데이트 실패" });
-    } else if (!result) {
-      res.status(404).json({ message: "해당하는 노트가 없습니다." });
-    } else {
-    
-      console.log("업데이트 완료");
-      res.json({ message: "업데이트 완료", updatedNote: result });
+  Notelist.findOneAndUpdate(
+    { _id: id },
+    updatedNote,
+    { new: true },
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        res.status(500).json({ message: '업데이트 실패' });
+      } else if (!result) {
+        res.status(404).json({ message: '해당하는 노트가 없습니다.' });
+      } else {
+        console.log('업데이트 완료');
+        res.json({ message: '업데이트 완료', updatedNote: result });
+      }
     }
-  });
+  );
 });
 app.put('/api/notelist/:id/hit', async (req, res) => {
   const id = req.params.id;
@@ -341,7 +337,7 @@ app.put('/api/notelist/:id/hit', async (req, res) => {
 });
 
 /// 좋아요
-app.put('/api/notelist/:id/like', auth,async (req, res) => {
+app.put('/api/notelist/:id/like', auth, async (req, res) => {
   const noteId = req.params.id;
   const userId = req.user._id; // 로그인한 사용자의 ID
 
@@ -351,8 +347,6 @@ app.put('/api/notelist/:id/like', auth,async (req, res) => {
 
     // 중복 좋아요 확인
     if (userId && note.likesBy.includes(userId)) {
-
-     
       return res.status(400).json({ message: '이미 좋아요를 눌렀습니다.' });
     }
 
@@ -363,14 +357,13 @@ app.put('/api/notelist/:id/like', auth,async (req, res) => {
     const updatedNote = await note.save();
 
     res.json({ message: '좋아요가 추가되었습니다.', note: updatedNote });
-    
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: '좋아요가 안되었요'})
+    res.status(500).json({ message: '좋아요가 안되었요' });
   }
 });
 
-app.delete('/api/notelist/:id/unlike', auth,async (req, res) => {
+app.delete('/api/notelist/:id/unlike', auth, async (req, res) => {
   const noteId = req.params.id;
   const userId = req.user._id; // 로그인한 사용자의 ID
 
@@ -393,17 +386,17 @@ app.delete('/api/notelist/:id/unlike', auth,async (req, res) => {
     res.json({ message: '좋아요가 취소되었습니다.', note: updatedNote });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: '좋아요 취소가 안되었어요'})
+    res.status(500).json({ message: '좋아요 취소가 안되었어요' });
   }
 });
 
-app.post("/api/users/login", (req, res) => {
+app.post('/api/users/login', (req, res) => {
   // 요청된 이메일을 데이터베이스에서 있는지 찾는다.
   User.findOne({ email: req.body.email }, (err, user) => {
     if (!user) {
       return res.json({
         loginSuccess: false,
-        message: "해당하는 유저가 존재하지 않습니다.",
+        message: '해당하는 유저가 존재하지 않습니다.',
       });
     }
 
@@ -412,14 +405,15 @@ app.post("/api/users/login", (req, res) => {
       if (!isMatch)
         return res.json({
           loginSuccess: false,
-          message: "비밀번호가 일치하지 않습니다.",
+          message: '비밀번호가 일치하지 않습니다.',
         });
       // 비밀번호까지 일치하다면 해당 유저 Token 생성.
       user.generateToken((err, user) => {
-        res
-          .cookie("x_auth", user.token)
-          .status(200)
-          .json({ loginSuccess: true, userId: user._id ,usertoken: user.token});
+        res.cookie('x_auth', user.token).status(200).json({
+          loginSuccess: true,
+          userId: user._id,
+          usertoken: user.token,
+        });
       });
     });
   });
@@ -427,7 +421,7 @@ app.post("/api/users/login", (req, res) => {
 
 // role 1 어드민    role 2 특정 부서 어드민
 // role 0 -> 일반유저   role 0이 아니면  관리자
-app.get("/api/users/auth", auth, (req, res) => {
+app.get('/api/users/auth', auth, (req, res) => {
   //여기 까지 미들웨어를 통과해 왔다는 얘기는  Authentication 이 True 라는 말.
   res.status(200).json({
     _id: req.user._id,
@@ -438,31 +432,31 @@ app.get("/api/users/auth", auth, (req, res) => {
     lastname: req.user.lastname,
     role: req.user.role,
     image: req.user.image,
-  
   });
 });
 
-app.get("/api/users/logout", auth, (req, res) => {
+app.get('/api/users/logout', auth, (req, res) => {
   // console.log('req.user', req.user)
-  User.findOneAndUpdate({ _id: req.user._id }, { token: "" }, (err, user) => {
+  User.findOneAndUpdate({ _id: req.user._id }, { token: '' }, (err, user) => {
     if (err) return res.json({ success: false, err });
     return res.status(200).send({
       success: true,
     });
   });
 });
- 
+
 router.get('/search', async (req, res) => {
   const { keyword } = req.query;
   try {
-    const result = await Notelist.find({ title: { $regex: keyword, $options: 'i' } });
+    const result = await Notelist.find({
+      title: { $regex: keyword, $options: 'i' },
+    });
     res.json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
 
 // const multer = require("multer"); // (1)
 // const {v4:uuid} = require("uuid");
@@ -480,9 +474,9 @@ router.get('/search', async (req, res) => {
 // const upload = multer({ // (6)
 //   storage,
 //   fileFilter: (req, file, cb) => {
-//       if (["image/jpeg", "image/jpg", "image/png"].includes(file.mimetype)) 
+//       if (["image/jpeg", "image/jpg", "image/png"].includes(file.mimetype))
 //           cb(null, true);
-//       else 
+//       else
 //           cb(new Error("해당 파일의 형식을 지원하지 않습니다."), false);
 //       }
 //   ,
@@ -495,4 +489,4 @@ router.get('/search', async (req, res) => {
 //   res.status(200).json(req.file);
 // });
 
-// app.use("/images", express.static(path.join(__dirname, "/images"))); 
+// app.use("/images", express.static(path.join(__dirname, "/images")));
