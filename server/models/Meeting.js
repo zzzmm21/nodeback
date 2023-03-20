@@ -9,8 +9,25 @@ const meetingSchema = mongoose.Schema(
     },
     members: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        role: {
+          type: String,
+          enum: ['host', 'member'],
+          default: 'member',
+        },
+        status: {
+          type: String,
+          enum: [
+            'host',
+            'provisional_member',
+            'full_member',
+            'rejected_member',
+          ],
+          default: 'provisional_member',
+        },
       },
     ],
     title: {

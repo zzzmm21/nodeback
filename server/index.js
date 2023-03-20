@@ -515,8 +515,18 @@ const uploadmt = multer();
 // });
 
 app.post('/api/meeting/create', uploadmt.none(), (req, res) => {
-  const meeting = new Meeting(req.body);
-  console.log(req.body);
+  const meetingData = {
+    ...req.body,
+    members: [
+      {
+        user: req.body.creator,
+        role: 'host',
+        status: 'host',
+      },
+    ],
+  };
+  const meeting = new Meeting(meetingData);
+  console.log(meetingData);
   meeting.save((err, doc) => {
     if (err) return res.json({ success: false, err });
 
@@ -562,7 +572,59 @@ app.get('/api/meeting/all', (req, res) => {
 app.get('/api/meeting/allorders', async (req, res) => {
   const filter = {};
   const allOrders = await Meeting.find(filter).select(
-    'autoIncrementField title order.date'
+    '_id autoIncrementField title order.date'
   );
   res.json(allOrders);
+});
+
+app.post('/api/meeting/:no/register', uploadmt.none(), (req, res) => {
+  const meetingNo = req.params.no;
+  console.log(meetingNo);
+  const newMember = {
+    user: req.body.userId,
+  };
+
+  console.log(req.body);
+  Meeting.findOneAndUpdate(
+    { autoIncrementField: meetingNo }, // 쿼리 객체
+    { $push: { members: newMember } }, // 업데이트 객체
+    { new: true },
+    (err, result) => {
+      if (err) return res.json({ success: false, err });
+      return res.status(200).json({
+        success: true,
+        meetingNo: result._id,
+      });
+    }
+  );
+});
+
+// 나이계산
+const calculateAge = (birthday) => {
+  const ageDifMs = Date.now() - birthday.getTime();
+  const ageDate = new Date(ageDifMs);
+  return Math.abs(ageDate.getUTCFullYear() - 1970);
+};
+app.get('/api/meeting/admin/:no/allmembers', async (req, res) => {
+  try {
+    const meetingNo = req.params.no;
+    const meeting = await Meeting.findOne({
+      autoIncrementField: meetingNo,
+    }).populate('members.user');
+    if (!meeting) {
+      return res.status(404).json({ message: 'Meeting not found' });
+    }
+    const members = meeting.members.map((member) => ({
+      name: member.user.name,
+      role: member.role,
+      status: member.status,
+      gender: member.gender,
+      file: member.file,
+      nickname: member.nickname,
+      age: calculateAge(member.user.date),
+    }));
+    res.json(members);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
