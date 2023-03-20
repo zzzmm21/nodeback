@@ -9,8 +9,25 @@ const meetingSchema = mongoose.Schema(
     },
     members: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        role: {
+          type: String,
+          enum: ['host', 'member'],
+          default: 'member',
+        },
+        status: {
+          type: String,
+          enum: [
+            'host',
+            'provisional_member',
+            'full_member',
+            'rejected_member',
+          ],
+          default: 'provisional_member',
+        },
       },
     ],
     title: {
@@ -81,8 +98,10 @@ const meetingSchema = mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
           },
+          { timestamps: true },
         ],
       },
+      { timestamps: true },
     ],
   },
   { timestamps: true }
@@ -103,8 +122,8 @@ meetingSchema.pre('save', async function (next) {
   const doc = this;
   for (const order of doc.order) {
     const lastOrder = await Meeting.findOne(
-      {},
-      { 'order.autoIncrementField': 1 }
+      { 'order.autoIncrementField': { $exists: true } },
+      { 'order.$': 1 }
     ).sort({ 'order.autoIncrementField': -1 });
     if (lastOrder && lastOrder.order[0].autoIncrementField) {
       order.autoIncrementField = lastOrder.order[0].autoIncrementField + 1;
