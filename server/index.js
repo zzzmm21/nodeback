@@ -38,7 +38,7 @@ io.on('connection', (socket) => {
 
     socket.emit('message', {
       user: 'admin',
-      text: `${user.name}, ${user.room}에 오신것을 환영합니다.`,
+      text: `${user.name} 모임방에 오신것을 환영합니다.`,
     });
     socket.broadcast.to(user.room).emit('message', {
       user: 'admin',
@@ -429,7 +429,6 @@ app.get('/api/users/auth', auth, (req, res) => {
     isAuth: true,
     email: req.user.email,
     name: req.user.name,
-    lastname: req.user.lastname,
     role: req.user.role,
     image: req.user.image,
   });
