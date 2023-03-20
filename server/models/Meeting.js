@@ -68,6 +68,7 @@ const meetingSchema = mongoose.Schema(
     },
     order: [
       {
+        autoIncrementField: { type: Number, default: 0 },
         date: {
           type: String,
         },
@@ -76,6 +77,7 @@ const meetingSchema = mongoose.Schema(
         },
         attendance: [
           {
+            autoIncrementField: { type: Number, default: 0 },
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
           },
@@ -93,6 +95,22 @@ meetingSchema.pre('save', async function (next) {
     doc.autoIncrementField = lastDoc.autoIncrementField + 1;
   } else {
     doc.autoIncrementField = 1;
+  }
+  next();
+});
+
+meetingSchema.pre('save', async function (next) {
+  const doc = this;
+  for (const order of doc.order) {
+    const lastOrder = await Meeting.findOne(
+      {},
+      { 'order.autoIncrementField': 1 }
+    ).sort({ 'order.autoIncrementField': -1 });
+    if (lastOrder && lastOrder.order[0].autoIncrementField) {
+      order.autoIncrementField = lastOrder.order[0].autoIncrementField + 1;
+    } else {
+      order.autoIncrementField = 1;
+    }
   }
   next();
 });

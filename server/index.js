@@ -558,3 +558,9 @@ app.get('/api/meeting/all', (req, res) => {
       return res.json({ success: false, err });
     });
 });
+
+app.get('/api/meeting/allorders', async (req, res) => {
+  const filter = {};
+  const allOrders = await Meeting.find(filter).select('title order.date');
+  res.json(allOrders);
+});
