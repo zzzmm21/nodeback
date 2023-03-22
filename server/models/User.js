@@ -28,9 +28,13 @@ const userSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
-    file: {
-      data: Buffer,
-      contentType: String,
+    imgpath: {
+      contentType: {
+        type: String,
+      },
+      path: {
+        type: String,
+      },
     },
     token: {
       type: String,

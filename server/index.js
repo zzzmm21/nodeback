@@ -22,7 +22,7 @@ const io = require('socket.io')(server, {
     origin: 'http://localhost:3000',
     methods: ['GET', 'POST'],
     allowedHeaders: ['my-custom-header'],
-    credentials: true,
+    credentials: true
   },
 });
 
@@ -42,7 +42,7 @@ io.on('connection', (socket) => {
     });
     socket.broadcast.to(user.room).emit('message', {
       user: 'admin',
-      text: `${user.name} 님이 가입하셨습니다.`,
+      text: `${user.name} 님이 입장하셨습니다.`,
     });
     io.to(user.room).emit('roomData', {
       room: user.room,
@@ -96,6 +96,7 @@ mongoose
   .connect(config.mongoURI, {})
   .then(() => console.log('MongoDB Connected...'))
   .catch((arr) => console.log(arr));
+  const path = require('path');
 
 const multer = require('multer');
 
@@ -110,7 +111,7 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage: storage }).single('file');
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // upload 함수 내보내기
 
 app.post('/api/users/register', (req, res) => {
@@ -136,6 +137,10 @@ app.post('/api/users/register', (req, res) => {
       nickname,
       gender,
       date,
+      imgpath: {
+       contentType: req.file.mimetype,
+    path: req.file.path,
+      },
     });
 
     // User 모델 저장
@@ -147,6 +152,30 @@ app.post('/api/users/register', (req, res) => {
         success: true,
       });
     });
+  });
+});
+
+// 사용자 정보 수정을 처리하는 라우트
+app.put('/api/users/me', (req, res) => {
+  const { name, email, password, nickname, gender, date } = req.body;
+
+  // 새로운 비밀번호가 입력된 경우 해싱하여 저장
+ 
+
+  User.findByIdAndUpdate(req.user._id, {
+    name: name,
+    email: email,
+    password: hashedPassword,
+    nickname: nickname,
+    gender: gender,
+    date: date,
+  }, { new: true }, (err, user) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send({ message: '서버 오류 발생' });
+    }
+
+    res.send({ message: '사용자 정보가 업데이트 되었습니다.', user });
   });
 });
 
@@ -185,7 +214,7 @@ app.get('/api/notelist/post', (req, res) => {
     });
 });
 app.put('/api/users/:id/bookgoal', (req, res) => {
-  const userId = req.params.id;
+  const userId = req.params._id;
   const { bookGoal } = req.body;
 
   User.findByIdAndUpdate(
@@ -429,8 +458,11 @@ app.get('/api/users/auth', auth, (req, res) => {
     isAuth: true,
     email: req.user.email,
     name: req.user.name,
+    nickname: req.user.nickname,
     role: req.user.role,
-    image: req.user.image,
+    imgpath: req.user.imgpath,
+    password: req.user.password,
+    date:req.user.date
   });
 });
 
@@ -457,38 +489,7 @@ router.get('/search', async (req, res) => {
   }
 });
 
-// const multer = require("multer"); // (1)
-// const {v4:uuid} = require("uuid");
-// const mime = require("mime-types");
-// const dotenv = require("dotenv");
-// const storage = multer.diskStorage({ // (2)
-//   destination: (req, file, cb) => { // (3)
-//     cb(null, "images");
-//   },
-//   filename: (req, file, cb) => { // (4)
-//     cb(null, `${uuid()}.${mime.extension(file.mimetype)}`); // (5)
-//   },
-// });
 
-// const upload = multer({ // (6)
-//   storage,
-//   fileFilter: (req, file, cb) => {
-//       if (["image/jpeg", "image/jpg", "image/png"].includes(file.mimetype))
-//           cb(null, true);
-//       else
-//           cb(new Error("해당 파일의 형식을 지원하지 않습니다."), false);
-//       }
-//   ,
-//   limits: {
-//       fileSize: 1024 * 1024 * 5
-//   }
-// });
-
-// app.post("/api/upload", upload.single("file"), (req, res) => { // (7)
-//   res.status(200).json(req.file);
-// });
-
-// app.use("/images", express.static(path.join(__dirname, "/images")));
 
 console.log('--------------------------------------------------------');
 
