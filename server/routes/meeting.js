@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { Meeting } = require('../models/Meeting');
+const bodyParser = require('body-parser');
 const multer = require('multer');
 const uploadmt = multer();
+
+router.use(bodyParser.json());
 
 // multer 설정
 const storage = multer.diskStorage({
@@ -76,13 +79,13 @@ router.get('/api/meeting/all', (req, res) => {
       res.status(200).json({ success: true, meetings: transformedMeetings });
     })
     .catch((err) => {
-      console.log(err);
+      // console.log(err);
       return res.json({ success: false, err });
     });
 });
 
 router.get('/api/meeting/allorders', async (req, res) => {
-  console.log(req);
+  // console.log(req);
   const filter = {};
   const allOrders = await Meeting.find(filter).select(
     '_id autoIncrementField title order.date'
@@ -132,12 +135,14 @@ router.get('/api/users/:userId/meetings', async (req, res) => {
 // 모임가입
 router.post('/api/meeting/:no/register', uploadmt.none(), (req, res) => {
   const meetingNo = req.params.no;
-  console.log(meetingNo);
+
+  console.log(`meetingNo: ${meetingNo}`);
+  console.log(`userId: ${req.body.userId}`);
+
   const newMember = {
     user: req.body.userId,
   };
 
-  console.log(req.body);
   Meeting.findOneAndUpdate(
     { autoIncrementField: meetingNo }, // 쿼리 객체
     { $push: { members: newMember } }, // 업데이트 객체
