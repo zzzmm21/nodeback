@@ -498,9 +498,12 @@ console.log('--------------------------------------------------------');
 
 const uploadmt = multer();
 
-app.post('/api/meeting/create', uploadmt.none(), (req, res) => {
+app.post('/api/meeting/create', upload, (req, res) => {
+  // console.log(req.file); // imgFile 필드의 파일 데이터
+  console.log(req.files); // 모든 파일 데이터
   const meetingData = {
     ...req.body,
+    imgFile: req.files.imgFile[0].path,
     members: [
       {
         user: req.body.creator,
@@ -510,9 +513,12 @@ app.post('/api/meeting/create', uploadmt.none(), (req, res) => {
     ],
   };
   const meeting = new Meeting(meetingData);
-  console.log(meetingData);
+  // console.log(meetingData);
   meeting.save((err, doc) => {
-    if (err) return res.json({ success: false, err });
+    // console.dir(err);
+    if (err) {
+      return res.json({ success: false, message: err.message });
+    }
 
     const firstMeeting = {
       date: req.body.firstDate,
@@ -525,7 +531,9 @@ app.post('/api/meeting/create', uploadmt.none(), (req, res) => {
       { $push: { order: firstMeeting } },
       { new: true },
       (err, result) => {
-        if (err) return res.json({ success: false, err });
+        if (err) {
+          return res.json({ success: false, err });
+        }
         return res.status(200).json({
           success: true,
           meetingId: result._id,

@@ -87,7 +87,7 @@ const meetingSchema = mongoose.Schema(
       // required: true,
     },
     imgFile: {
-      type: Buffer,
+      type: String,
     },
     order: [
       {
