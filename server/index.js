@@ -12,10 +12,11 @@ const server = http.createServer(app);
 const { addUser, removeUser, getUser, getUsersInRoom } = require('./users.js');
 const router = require('./router');
 
-const { Meeting } = require('./models/Meeting');
-
 const meetingRoutes = require('./routes/meeting');
 app.use(meetingRoutes);
+
+const faqRoutes = require('./routes/faqBoard');
+app.use(faqRoutes);
 
 app.use(router);
 app.use(bodyParser.urlencoded({ extended: true }));

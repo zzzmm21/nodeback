@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const commentSchema = mongoose.Schema(
+const meetingCommentSchema = mongoose.Schema(
   {
     autoIncrementField: { type: Number, default: 0 },
     creator: {
@@ -13,16 +13,18 @@ const commentSchema = mongoose.Schema(
     },
     articleId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Article',
+      ref: 'FAQArticle',
       required: true,
     },
   },
   { timestamps: true }
 );
 
-commentSchema.pre('save', async function (next) {
+meetingCommentSchema.pre('save', async function (next) {
   const doc = this;
-  const lastDoc = await Comment.findOne().sort({ autoIncrementField: -1 });
+  const lastDoc = await MeetingComment.findOne().sort({
+    autoIncrementField: -1,
+  });
   if (lastDoc && lastDoc.autoIncrementField) {
     doc.autoIncrementField = lastDoc.autoIncrementField + 1;
   } else {
@@ -31,6 +33,6 @@ commentSchema.pre('save', async function (next) {
   next();
 });
 
-const Comment = mongoose.model('Comment', commentSchema);
+const MeetingComment = mongoose.model('MeetingComment', meetingCommentSchema);
 
-module.exports = { Comment };
+module.exports = { MeetingComment };

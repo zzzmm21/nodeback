@@ -109,6 +109,24 @@ const meetingSchema = mongoose.Schema(
       },
       { timestamps: true },
     ],
+    faqArticles: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'FAQArticle',
+      },
+    ],
+    reviewArticles: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ReviewArticle',
+      },
+    ],
+    meetingArticles: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'MeetingArticle',
+      },
+    ],
   },
   { timestamps: true }
 );
