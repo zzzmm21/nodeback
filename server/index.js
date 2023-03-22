@@ -22,7 +22,7 @@ const io = require('socket.io')(server, {
     origin: 'http://localhost:3000',
     methods: ['GET', 'POST'],
     allowedHeaders: ['my-custom-header'],
-    credentials: true
+    credentials: true,
   },
 });
 
@@ -96,7 +96,7 @@ mongoose
   .connect(config.mongoURI, {})
   .then(() => console.log('MongoDB Connected...'))
   .catch((arr) => console.log(arr));
-  const path = require('path');
+const path = require('path');
 
 const multer = require('multer');
 
@@ -115,8 +115,9 @@ const upload = multer({ storage: storage }).fields([
   { name: 'file', maxCount: 1 },
 ]);
 
-// upload 함수 내보내기
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// upload 함수 내보내기
 app.post('/api/users/register', (req, res) => {
   // 파일 업로드 처리
   upload(req, res, (err) => {
@@ -141,8 +142,8 @@ app.post('/api/users/register', (req, res) => {
       gender,
       date,
       imgpath: {
-       contentType: req.file.mimetype,
-    path: req.file.path,
+        contentType: req.file.mimetype,
+        path: req.file.path,
       },
     });
 
@@ -163,23 +164,27 @@ app.put('/api/users/me', (req, res) => {
   const { name, email, password, nickname, gender, date } = req.body;
 
   // 새로운 비밀번호가 입력된 경우 해싱하여 저장
- 
 
-  User.findByIdAndUpdate(req.user._id, {
-    name: name,
-    email: email,
-    password: hashedPassword,
-    nickname: nickname,
-    gender: gender,
-    date: date,
-  }, { new: true }, (err, user) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send({ message: '서버 오류 발생' });
+  User.findByIdAndUpdate(
+    req.user._id,
+    {
+      name: name,
+      email: email,
+      password: hashedPassword,
+      nickname: nickname,
+      gender: gender,
+      date: date,
+    },
+    { new: true },
+    (err, user) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send({ message: '서버 오류 발생' });
+      }
+
+      res.send({ message: '사용자 정보가 업데이트 되었습니다.', user });
     }
-
-    res.send({ message: '사용자 정보가 업데이트 되었습니다.', user });
-  });
+  );
 });
 
 app.get('/api/category', async (req, res) => {
@@ -465,7 +470,7 @@ app.get('/api/users/auth', auth, (req, res) => {
     role: req.user.role,
     imgpath: req.user.imgpath,
     password: req.user.password,
-    date:req.user.date
+    date: req.user.date,
   });
 });
 
@@ -491,8 +496,6 @@ router.get('/search', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
-
 
 console.log('--------------------------------------------------------');
 
