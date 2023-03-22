@@ -109,7 +109,10 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix + '-' + file.originalname); // 파일 이름 설정
   },
 });
-const upload = multer({ storage: storage }).single('file');
+const upload = multer({ storage: storage }).fields([
+  { name: 'imgFile', maxCount: 1 },
+  { name: 'file', maxCount: 1 },
+]);
 
 // upload 함수 내보내기
 
@@ -495,25 +498,6 @@ console.log('--------------------------------------------------------');
 
 const uploadmt = multer();
 
-// app.post('/api/meeting/create', uploadmt.none(), (req, res) => {
-//   // 모임 생성에 필요한 정보를 클라이언트에서 가져오고
-//   // 그 정보를 데이터베이스에 삽입
-//   const meeting = new Meeting(req.body);
-//   // meeting모델에 정보가 저장되고 실패시 에러메세지 출력
-//   console.log(req.body);
-//   meeting
-//     .save()
-//     .then(() => {
-//       res.status(200).json({
-//         success: true,
-//       });
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//       return res.json({ success: false, err });
-//     });
-// });
-
 app.post('/api/meeting/create', uploadmt.none(), (req, res) => {
   const meetingData = {
     ...req.body,
@@ -545,12 +529,14 @@ app.post('/api/meeting/create', uploadmt.none(), (req, res) => {
         return res.status(200).json({
           success: true,
           meetingId: result._id,
+          result: result,
         });
       }
     );
   });
 });
 
+// 모든 모임 조회
 app.get('/api/meeting/all', (req, res) => {
   Meeting.find({})
     .populate('creator')
@@ -570,11 +556,58 @@ app.get('/api/meeting/all', (req, res) => {
 });
 
 app.get('/api/meeting/allorders', async (req, res) => {
+  console.log(req);
   const filter = {};
   const allOrders = await Meeting.find(filter).select(
     '_id autoIncrementField title order.date'
   );
   res.json(allOrders);
+});
+
+// 모임 1개 조회
+app.get('/api/meeting/:no', async (req, res) => {
+  try {
+    const meetingNo = req.params.no;
+    const meeting = await Meeting.findOne({
+      autoIncrementField: meetingNo,
+    }).populate('members.user');
+    if (!meeting) {
+      return res.status(404).json({ message: 'Meeting not found' });
+    }
+    const members = meeting.members.map((member) => ({
+      name: member.user.name,
+      role: member.role,
+      status: member.status,
+      gender: member.gender,
+      file: member.file,
+      nickname: member.nickname,
+      age: calculateAge(member.user.date),
+    }));
+    res.json(members);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// user별 모임 조회(모임제목, 유저 role, meetingStatus, order)
+app.get('/api/meetings/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const meetings = await Meeting.find(
+      { 'members.user': userId },
+      {
+        autoIncrementField: 1,
+        title: 1,
+        'members.$': 1,
+        meetingStatus: 1,
+        order: 1,
+      }
+    );
+    res.json(meetings);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
 });
 
 app.post('/api/meeting/:no/register', uploadmt.none(), (req, res) => {
@@ -605,6 +638,7 @@ const calculateAge = (birthday) => {
   const ageDate = new Date(ageDifMs);
   return Math.abs(ageDate.getUTCFullYear() - 1970);
 };
+
 app.get('/api/meeting/admin/:no/allmembers', async (req, res) => {
   try {
     const meetingNo = req.params.no;
@@ -624,6 +658,27 @@ app.get('/api/meeting/admin/:no/allmembers', async (req, res) => {
       age: calculateAge(member.user.date),
     }));
     res.json(members);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 모임별 order 조회
+app.get('/api/meeting/:no/orders', async (req, res) => {
+  try {
+    const meetingNo = req.params.no;
+    const meeting = await Meeting.findOne({
+      autoIncrementField: meetingNo,
+    });
+    if (!meeting) {
+      return res.status(404).json({ message: 'Meeting not found' });
+    }
+    const orders = meeting.order.map((order) => ({
+      title: meeting.title,
+      orderNo: order.autoIncrementField,
+      date: order.date,
+    }));
+    res.json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
