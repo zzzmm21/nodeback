@@ -19,9 +19,13 @@ const faqArticleSchema = mongoose.Schema(
       type: String,
       // required: true,
     },
+    hashtags: {
+      type: [String],
+      // required: true,
+    },
     hitCount: {
       type: Number,
-      default: 0
+      default: 0,
       // required: true,
     },
     replies: [

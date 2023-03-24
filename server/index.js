@@ -114,10 +114,7 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix + '-' + file.originalname); // 파일 이름 설정
   },
 });
-const upload = multer({ storage: storage }).fields([
-  { name: 'imgFile', maxCount: 1 },
-  { name: 'file', maxCount: 1 },
-]);
+const upload = multer({ storage: storage }).single('file');
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
