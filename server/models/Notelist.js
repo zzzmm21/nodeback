@@ -10,7 +10,9 @@ const notelistSchema = mongoose.Schema(
       type: Number,
       trim: true,
     },
-
+    category:{
+      type: String,
+    },
     title: {
       type: String,
       maxLength: 50,

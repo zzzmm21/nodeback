@@ -48,6 +48,7 @@ const userSchema = mongoose.Schema(
     },
     bookGoal: {
       type: Number,
+      
     },
     notes: [
       {
