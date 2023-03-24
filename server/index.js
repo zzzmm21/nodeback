@@ -160,42 +160,49 @@ app.post('/api/users/register', (req, res) => {
   });
 });
 
-// 사용자 정보 수정을 처리하는 라우트
-app.put('/api/users/me', (req, res) => {
-  const { name, email, password, nickname, gender, date } = req.body;
-
-  // 새로운 비밀번호가 입력된 경우 해싱하여 저장
-
-  User.findByIdAndUpdate(
-    req.user._id,
-    {
-      name: name,
-      email: email,
-      password: hashedPassword,
-      nickname: nickname,
-      gender: gender,
-      date: date,
-    },
-    { new: true },
-    (err, user) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send({ message: '서버 오류 발생' });
+app.put('/api/users/me', auth, (req, res) => {
+  upload(req, res, (err) => {
+    if (err) {
+      // 업로드 오류 처리
+      if (err instanceof multer.MulterError) {
+        return res.json({ success: false, message: '파일 업로드 오류 발생' });
+      } else {
+        return res.json({ success: false, message: '알 수 없는 오류 발생' });
       }
-
-      res.send({ message: '사용자 정보가 업데이트 되었습니다.', user });
     }
-  );
+
+    const { name, email, password, nickname, gender, date } = req.body;
+
+    // 새로운 비밀번호가 입력된 경우 해싱하여 저장
+
+    User.findByIdAndUpdate(
+      req.user._id,
+      {
+        name: name,
+        email: email,
+        password: password,
+        nickname: nickname,
+        gender: gender,
+        date: date,
+        imgpath: {
+          contentType: req.file.mimetype,
+          path: req.file.path,
+        },
+      },
+      { new: true },
+      (err, user) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send({ message: '서버 오류 발생' });
+        }
+
+        res.send({ message: '사용자 정보가 업데이트 되었습니다.', user });
+      }
+    );
+  });
 });
 
-app.get('/api/category', async (req, res) => {
-  try {
-    const accounts = await Category.find();
-    res.json(accounts);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+
 app.get('/api/notelist', async (req, res) => {
   try {
     const accounts = await Notelist.find();
@@ -223,7 +230,7 @@ app.get('/api/notelist/post', (req, res) => {
     });
 });
 app.put('/api/users/:id/bookgoal', (req, res) => {
-  const userId = req.params._id;
+  const userId = req.params.id;
   const { bookGoal } = req.body;
 
   User.findByIdAndUpdate(
@@ -264,29 +271,24 @@ app.post('/api/notelist/user', auth, (req, res, next) => {
     });
   });
 });
-app.post('/api/category', (req, res) => {
-  // 회원가에 필요한 정보들을 클라이언트에서 가져오면 그것들을 데이터베이스에 넣어준다.
-  const category = new Category(req.body);
 
-  category.save((err, categoryInfo) => {
-    if (err) return res.json({ success: false, err });
-    return res.status(200).json({
-      success: true,
-    });
-  });
-});
 app.delete('/api/notelist/:id', (req, res) => {
   const id = req.params.id;
 
   Notelist.findOneAndDelete({ _id: id }, (err, result) => {
     if (err) {
       console.error(err);
-      res.status(500).json({ message: '삭제 실패' });
+      res.status(500).json({ message: 'Failed to delete' });
     } else if (!result) {
-      res.status(404).json({ message: '해당하는 노트가 없습니다.' });
+      res.status(404).json({ message: 'There is no such note.' });
     } else {
-      console.log('삭제 완료');
-      res.json({ message: '삭제 완료' });
+      console.log('Delete complete');
+
+      // Find the corresponding user and update the postCount field by subtracting 1
+      User.findByIdAndUpdate(result.author, { $inc: { postCount: -1 } }, { new: true }, (err, updatedUser) => {
+        if (err) return res.status(500).send(err);
+        res.json({ message: 'Delete complete', user: updatedUser });
+      });
     }
   });
 });
@@ -485,13 +487,42 @@ app.get('/api/users/logout', auth, (req, res) => {
   });
 });
 
-router.get('/search', async (req, res) => {
+app.get('/search', auth, async (req, res) => {
   const { keyword } = req.query;
+  const userId = req.user._id; // get the authenticated user's ID
+
   try {
     const result = await Notelist.find({
       title: { $regex: keyword, $options: 'i' },
+      author: userId, // add filter to only return notes by the authenticated user
     });
     res.json(result);
+
+  } catch (err) { 
+    console.error(err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+
+});
+
+app.get('/api/category', auth, (req, res) => {
+  const userId = req.user._id;
+  try{
+    Notelist.aggregate([
+      { $match: { author: userId } },
+      { $group: { _id: "$category", count: { $sum: 1 } } },
+      { $group: { _id: null, categories: { $push: { category: "$_id", count: "$count" } }, totalCount: { $sum: "$count" } } },
+      { $unwind: "$categories" },
+      { $project: { _id: 0, category: "$categories.category", count: "$categories.count", percentage: { $multiply: [ { $divide: [ "$categories.count", "$totalCount" ] }, 100 ] } } }
+    ], (err, result) => {
+      if (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+      } else {
+        res.json(result);
+        console.log(result);
+      }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Internal server error' });
