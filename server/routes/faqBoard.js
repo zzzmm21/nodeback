@@ -10,6 +10,7 @@ router.post(
   '/api/meeting/:no/faqArticle/create',
   noFileUpload.none(),
   (req, res) => {
+    console.log(req.body);
     const { title, content, creator, hashtags } = req.body;
     const meetingNo = req.params.no;
 
@@ -104,7 +105,6 @@ router.patch(
   '/api/meeting/:no/faqArticle/:id',
   noFileUpload.none(),
   async (req, res) => {
-    console.log(req.body);
     try {
       const { title, content, hashtags } = req.body;
       const articleId = req.params.id;
