@@ -74,8 +74,7 @@ router.get('/api/meeting/:no/faqArticle/:id', async (req, res) => {
     }
 
     // 조회수 증가
-    faqArticle.hitCount += 1;
-    await faqArticle.save();
+    await FAQArticle.updateOne({ _id: articleId }, { $inc: { hitCount: 1 } });
 
     res.status(200).json(faqArticle);
   } catch (error) {
@@ -95,6 +94,28 @@ router.delete('/api/meeting/:no/faqArticle/:id', async (req, res) => {
 
     await FAQArticle.findByIdAndDelete(articleId);
     res.status(200).json({ message: 'FAQ article deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 특정 게시글 수정
+router.patch('/api/meeting/:no/faqArticle/:id', async (req, res) => {
+  try {
+    const { title, content, hashtags } = req.body;
+    const articleId = req.params.id;
+
+    const faqArticle = await FAQArticle.findByIdAndUpdate(
+      articleId,
+      { title, content, hashtags },
+      { new: true }
+    );
+
+    if (!faqArticle) {
+      return res.status(404).json({ message: 'FAQ article not found' });
+    }
+
+    res.status(200).json({ message: 'FAQ article updated successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
