@@ -23,7 +23,7 @@ router.post(
   '/api/meeting/:no/reviewArticle/create',
   noFileUpload.none(),
   (req, res) => {
-    console.log('요청이 수신되었습니다.');
+    // console.log('요청이 수신되었습니다.');
     const { title, content, creator, hashtags } = req.body;
     const meetingNo = req.params.no;
 
@@ -52,7 +52,7 @@ router.post(
 
 // 모임별 전체 reviewArticle 조회(리스트)
 router.get('/api/meeting/:no/reviewArticle', async (req, res) => {
-  console.log('요청이 수신되었습니다.');
+  // console.log('요청이 수신되었습니다.');
   try {
     const meetingNo = req.params.no;
     const meeting = await Meeting.findOne({
@@ -72,48 +72,51 @@ router.get('/api/meeting/:no/reviewArticle', async (req, res) => {
   }
 });
 
-// // 특정 게시글 조회
-// router.get('/api/meeting/:no/faqArticle/:id', async (req, res) => {
-//   // console.log('요청이 수신되었습니다.'); // 요청 수신 로그 출력
-//   // console.log(req.body);
-//   try {
-//     const articleId = req.params.id;
+// 특정 reviewArticle 조회
+router.get('/api/meeting/:no/reviewArticle/:id', async (req, res) => {
+  // console.log('요청이 수신되었습니다.'); // 요청 수신 로그 출력
+  // console.log(req.body);
+  try {
+    const articleId = req.params.id;
 
-//     const faqArticle = await FAQArticle.findById(articleId).populate(
-//       'creator',
-//       'name'
-//     );
+    const reviewArticle = await ReviewArticle.findById(articleId).populate(
+      'creator',
+      'name'
+    );
 
-//     if (!faqArticle) {
-//       return res.status(404).json({ message: 'FAQ article not found' });
-//     }
+    if (!reviewArticle) {
+      return res.status(404).json({ message: 'FAQ article not found' });
+    }
 
-//     // 조회수 증가
-//     await FAQArticle.updateOne({ _id: articleId }, { $inc: { hitCount: 1 } });
+    // 조회수 증가
+    await ReviewArticle.updateOne(
+      { _id: articleId },
+      { $inc: { hitCount: 1 } }
+    );
 
-//     res.status(200).json(faqArticle);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// });
+    res.status(200).json(reviewArticle);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
-// // 특정 게시글 삭제
-// router.delete('/api/meeting/:no/faqArticle/:id', async (req, res) => {
-// console.log('요청이 수신되었습니다.');
-//   try {
-//     const articleId = req.params.id;
-//     const faqArticle = await FAQArticle.findById(articleId);
+// 특정 reviewArticle 삭제
+router.delete('/api/meeting/:no/reviewArticle/:id', async (req, res) => {
+  console.log('요청이 수신되었습니다.');
+  try {
+    const articleId = req.params.id;
+    const reviewArticle = await ReviewArticle.findById(articleId);
 
-//     if (!faqArticle) {
-//       return res.status(404).json({ message: 'FAQ article not found' });
-//     }
+    if (!reviewArticle) {
+      return res.status(404).json({ message: 'FAQ article not found' });
+    }
 
-//     await FAQArticle.findByIdAndDelete(articleId);
-//     res.status(200).json({ message: 'FAQ article deleted successfully' });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// });
+    await ReviewArticle.findByIdAndDelete(articleId);
+    res.status(200).json({ message: 'FAQ article deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // // 특정 게시글 수정
 // router.patch(

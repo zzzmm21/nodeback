@@ -21,6 +21,7 @@ const reviewArticleSchema = mongoose.Schema(
     },
     hitCount: {
       type: Number,
+      default: 0,
       // required: true,
     },
     comments: [
