@@ -54,6 +54,10 @@ router.post(
 router.get('/api/meeting/:no/reviewArticle', async (req, res) => {
   // console.log('요청이 수신되었습니다.');
   try {
+    // 페이지네이션
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 5;
+
     const meetingNo = req.params.no;
     const meeting = await Meeting.findOne({
       autoIncrementField: meetingNo,
@@ -65,8 +69,16 @@ router.get('/api/meeting/:no/reviewArticle', async (req, res) => {
 
     const reviewArticles = await ReviewArticle.find({ meeting: meeting._id })
       .sort({ createdAt: -1 })
-      .populate('creator', 'name');
-    res.status(200).json(reviewArticles);
+      .populate('creator', 'name')
+      .skip((page - 1) * pageSize)
+      .limit(pageSize);
+
+    const totalArticles = await ReviewArticle.countDocuments({
+      meeting: meeting._id,
+    });
+    const totalPages = Math.ceil(totalArticles / pageSize);
+
+    res.status(200).json({ reviewArticles, totalPages });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -124,6 +136,7 @@ router.patch(
   noFileUpload.none(),
   async (req, res) => {
     console.log('요청이 수신되었습니다.');
+    s;
     console.log(req.body);
     try {
       const { title, content, hashtags } = req.body;

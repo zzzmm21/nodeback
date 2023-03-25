@@ -40,6 +40,10 @@ router.post(
 // 전체 게시글 조회(리스트)
 router.get('/api/meeting/:no/faqArticle', async (req, res) => {
   try {
+    // 페이지네이션
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 5;
+
     const meetingNo = req.params.no;
     const meeting = await Meeting.findOne({
       autoIncrementField: meetingNo,
@@ -51,8 +55,16 @@ router.get('/api/meeting/:no/faqArticle', async (req, res) => {
 
     const faqArticles = await FAQArticle.find({ meeting: meeting._id })
       .sort({ createdAt: -1 })
-      .populate('creator', 'name');
-    res.status(200).json(faqArticles);
+      .populate('creator', 'name')
+      .skip((page - 1) * pageSize)
+      .limit(pageSize);
+
+    const totalArticles = await FAQArticle.countDocuments({
+      meeting: meeting._id,
+    });
+    const totalPages = Math.ceil(totalArticles / pageSize);
+
+    res.status(200).json({ faqArticles, totalPages });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
