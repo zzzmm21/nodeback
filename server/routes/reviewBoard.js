@@ -50,26 +50,27 @@ router.post(
   }
 );
 
-// // 전체 게시글 조회(리스트)
-// router.get('/api/meeting/:no/faqArticle', async (req, res) => {
-//   try {
-//     const meetingNo = req.params.no;
-//     const meeting = await Meeting.findOne({
-//       autoIncrementField: meetingNo,
-//     });
+// 모임별 전체 reviewArticle 조회(리스트)
+router.get('/api/meeting/:no/reviewArticle', async (req, res) => {
+  console.log('요청이 수신되었습니다.');
+  try {
+    const meetingNo = req.params.no;
+    const meeting = await Meeting.findOne({
+      autoIncrementField: meetingNo,
+    });
 
-//     if (!meeting) {
-//       return res.status(404).json({ message: 'Meeting not found' });
-//     }
+    if (!meeting) {
+      return res.status(404).json({ message: 'Meeting not found' });
+    }
 
-//     const faqArticles = await FAQArticle.find({ meeting: meeting._id })
-//       .sort({ createdAt: -1 })
-//       .populate('creator', 'name');
-//     res.status(200).json(faqArticles);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// });
+    const reviewArticles = await ReviewArticle.find({ meeting: meeting._id })
+      .sort({ createdAt: -1 })
+      .populate('creator', 'name');
+    res.status(200).json(reviewArticles);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // // 특정 게시글 조회
 // router.get('/api/meeting/:no/faqArticle/:id', async (req, res) => {
@@ -98,6 +99,7 @@ router.post(
 
 // // 특정 게시글 삭제
 // router.delete('/api/meeting/:no/faqArticle/:id', async (req, res) => {
+// console.log('요청이 수신되었습니다.');
 //   try {
 //     const articleId = req.params.id;
 //     const faqArticle = await FAQArticle.findById(articleId);
@@ -118,6 +120,7 @@ router.post(
 //   '/api/meeting/:no/faqArticle/:id',
 //   noFileUpload.none(),
 //   async (req, res) => {
+// console.log('요청이 수신되었습니다.');
 //     console.log(req.body);
 //     try {
 //       const { title, content, hashtags } = req.body;
