@@ -19,6 +19,10 @@ const meetingArticleSchema = mongoose.Schema(
       type: String,
       // required: true,
     },
+    hashtags: {
+      type: [String],
+      // required: true,
+    },
     hitCount: {
       type: Number,
       default: 0,

@@ -85,7 +85,7 @@ router.get('/api/meeting/:no/reviewArticle/:id', async (req, res) => {
     );
 
     if (!reviewArticle) {
-      return res.status(404).json({ message: 'FAQ article not found' });
+      return res.status(404).json({ message: 'reviewArticle not found' });
     }
 
     // 조회수 증가
@@ -108,42 +108,42 @@ router.delete('/api/meeting/:no/reviewArticle/:id', async (req, res) => {
     const reviewArticle = await ReviewArticle.findById(articleId);
 
     if (!reviewArticle) {
-      return res.status(404).json({ message: 'FAQ article not found' });
+      return res.status(404).json({ message: 'reviewArticle not found' });
     }
 
     await ReviewArticle.findByIdAndDelete(articleId);
-    res.status(200).json({ message: 'FAQ article deleted successfully' });
+    res.status(200).json({ message: 'reviewArticle deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// // 특정 게시글 수정
-// router.patch(
-//   '/api/meeting/:no/faqArticle/:id',
-//   noFileUpload.none(),
-//   async (req, res) => {
-// console.log('요청이 수신되었습니다.');
-//     console.log(req.body);
-//     try {
-//       const { title, content, hashtags } = req.body;
-//       const articleId = req.params.id;
+// 특정 reviewArticle 수정
+router.patch(
+  '/api/meeting/:no/reviewArticle/:id',
+  noFileUpload.none(),
+  async (req, res) => {
+    console.log('요청이 수신되었습니다.');
+    console.log(req.body);
+    try {
+      const { title, content, hashtags } = req.body;
+      const articleId = req.params.id;
 
-//       const faqArticle = await FAQArticle.findByIdAndUpdate(
-//         articleId,
-//         { title, content, hashtags },
-//         { new: true }
-//       );
+      const reviewArticle = await ReviewArticle.findByIdAndUpdate(
+        articleId,
+        { title, content, hashtags },
+        { new: true }
+      );
 
-//       if (!faqArticle) {
-//         return res.status(404).json({ message: 'FAQ article not found' });
-//       }
+      if (!reviewArticle) {
+        return res.status(404).json({ message: 'reviewArticle not found' });
+      }
 
-//       res.status(200).json({ message: 'FAQ article updated successfully' });
-//     } catch (error) {
-//       res.status(500).json({ message: error.message });
-//     }
-//   }
-// );
+      res.status(200).json({ message: 'reviewArticle updated successfully' });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
 
 module.exports = router;
