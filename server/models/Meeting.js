@@ -34,6 +34,10 @@ const meetingSchema = mongoose.Schema(
       type: String,
       // required: true,
     },
+    location: {
+      type: String,
+      // required: true,
+    },
     meetingStatus: {
       type: String,
       enum: ['recruiting', 'in_progress', 'completed'],

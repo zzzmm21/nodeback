@@ -129,6 +129,7 @@ router.get('/api/users/:userId/meetings', async (req, res) => {
         'members.$': 1,
         meetingStatus: 1,
         order: 1,
+        imgFile: 1,
       }
     );
     res.json(meetings);
@@ -187,7 +188,7 @@ router.get('/api/meeting/:no/members', async (req, res) => {
       role: member.role,
       status: member.status,
       gender: member.user.gender,
-      file: member.file,
+      imgpath: member.user.imgpath,
       nickname: member.nickname,
       age: calculateAge(member.user.date),
     }));
@@ -222,10 +223,8 @@ router.get('/api/meeting/:no/orders', async (req, res) => {
 // host:meeting admin
 // member status 관리
 // provisional_member->full_member, rejected_member
-router.patch('/meetings/:no/members/:memberId', async (req, res) => {
-  console.log('요청');
+router.patch('/api/meetings/:no/members/:memberId', async (req, res) => {
   try {
-    console.log('요청');
     const { no, memberId } = req.params;
     const { status } = req.body;
 
@@ -234,7 +233,7 @@ router.patch('/meetings/:no/members/:memberId', async (req, res) => {
       autoIncrementField: no,
     });
     const member = meeting.members.find((m) => m.user.toString() === memberId);
-    console.log(member);
+    // console.log(member);
 
     // status 값을 업데이트합니다.
     member.status = status;
@@ -242,7 +241,7 @@ router.patch('/meetings/:no/members/:memberId', async (req, res) => {
     // 데이터베이스에 변경 사항을 저장합니다.
     await meeting.save();
 
-    res.send({ message: '멤버 상태가 변경되었습니다.' });
+    res.status(200).send({ message: '멤버 상태가 변경되었습니다.' });
   } catch (error) {
     res.status(500).send({ message: '오류가 발생했습니다.' });
   }
