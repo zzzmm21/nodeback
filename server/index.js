@@ -12,9 +12,8 @@ const server = http.createServer(app);
 const { addUser, removeUser, getUser, getUsersInRoom } = require('./users.js');
 const router = require('./router');
 const bcommentRouter = require('./routes/bcomment');
-
-
 app.use(bcommentRouter);
+
 const meetingRoutes = require('./routes/meeting');
 app.use(meetingRoutes);
 
@@ -444,7 +443,6 @@ app.delete('/api/notelist/:id/unlike', auth, async (req, res) => {
 });
 
 app.post('/api/users/login', (req, res) => {
-
   // 요청된 이메일을 데이터베이스에서 있는지 찾는다.
   User.findOne({ email: req.body.email }, (err, user) => {
     if (!user) {

@@ -78,7 +78,9 @@ router.get('/api/meeting/:no/reviewArticle', async (req, res) => {
     });
     const totalPages = Math.ceil(totalArticles / pageSize);
 
-    res.status(200).json({ reviewArticles, totalPages });
+    res
+      .status(200)
+      .json({ reviewArticles, totalPages, totalArticles, pageSize });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

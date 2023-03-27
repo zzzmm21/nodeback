@@ -4,6 +4,7 @@ const { Meeting } = require('../models/Meeting');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const uploadmt = multer();
+const mongoose = require('mongoose');
 
 router.use(bodyParser.json());
 
@@ -118,6 +119,31 @@ router.get('/api/meeting/:no', async (req, res) => {
 });
 
 // user별 모임 조회(모임제목, 유저 role, meetingStatus, order)
+// router.get('/api/users/:userId/meetings', async (req, res) => {
+//   try {
+//     const { userId } = req.params;
+//     const meetings = await Meeting.aggregate([
+//       { $match: { 'members.user': mongoose.Types.ObjectId(userId) } },
+//       { $unwind: '$members' },
+//       { $match: { 'members.user': mongoose.Types.ObjectId(userId) } },
+//       {
+//         $project: {
+//           autoIncrementField: 1,
+//           title: 1,
+//           memberStatus: '$members.status',
+//           meetingStatus: 1,
+//           order: 1,
+//           imgFile: 1,
+//           maxNum: 1,
+//         },
+//       },
+//     ]);
+//     res.json(meetings);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Server Error' });
+//   }
+// });
 router.get('/api/users/:userId/meetings', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -130,6 +156,7 @@ router.get('/api/users/:userId/meetings', async (req, res) => {
         meetingStatus: 1,
         order: 1,
         imgFile: 1,
+        maxNum: 1,
       }
     );
     res.json(meetings);

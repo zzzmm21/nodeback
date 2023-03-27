@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { FAQArticle } = require('../models/articleAndComment/FAQArticle');
+const { FAQComment } = require('../models/articleAndComment/FAQComment');
 const { Meeting } = require('../models/Meeting');
 const multer = require('multer');
 const noFileUpload = multer();
@@ -64,7 +65,7 @@ router.get('/api/meeting/:no/faqArticle', async (req, res) => {
     });
     const totalPages = Math.ceil(totalArticles / pageSize);
 
-    res.status(200).json({ faqArticles, totalPages });
+    res.status(200).json({ faqArticles, totalPages, totalArticles, pageSize });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -135,6 +136,37 @@ router.patch(
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
+  }
+);
+
+// faq comment 작성
+router.post(
+  '/api/meeting/:no/:articleId/faqComment/create',
+  noFileUpload.none(),
+  (req, res) => {
+    const { content, creator } = req.body;
+    const meetingNo = req.params.no;
+    const articleId = req.params.articleId;
+
+    Meeting.findOne({ autoIncrementField: meetingNo }, (err, meeting) => {
+      if (err) {
+        return res.status(500).json({ success: false, err });
+      }
+
+      const newFAQComment = new FAQComment({
+        content,
+        creator,
+        meeting: meeting._id,
+        articleId,
+      });
+
+      newFAQComment.save((err, doc) => {
+        if (err) {
+          return res.status(500).json({ success: false, err });
+        }
+        return res.status(200).json({ success: true, doc });
+      });
+    });
   }
 );
 
