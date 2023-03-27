@@ -85,12 +85,18 @@ router.get('/api/meeting/all', (req, res) => {
 });
 
 router.get('/api/meeting/allorders', async (req, res) => {
-  // console.log(req);
   const filter = {};
   const allOrders = await Meeting.find(filter).select(
     '_id autoIncrementField title order.date'
   );
-  res.json(allOrders);
+  const result = allOrders.map((order) => {
+    return {
+      ...order.toObject(),
+      meetingNo: order.autoIncrementField,
+      autoIncrementField: undefined,
+    };
+  });
+  res.json(result);
 });
 
 // 모임별 정보 조회
@@ -201,6 +207,7 @@ router.get('/api/meeting/:no/orders', async (req, res) => {
       return res.status(404).json({ message: 'Meeting not found' });
     }
     const orders = meeting.order.map((order) => ({
+      meetingNo: meeting.autoIncrementField,
       title: meeting.title,
       orderNo: order.autoIncrementField,
       date: order.date,
