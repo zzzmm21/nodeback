@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 
 const BCommentSchema = mongoose.Schema(
   {
-      content: {
-        type: String,
-
-      },
+    content: {
+      type: String,
+      trim: true,
+    },
   
     });
 

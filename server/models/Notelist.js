@@ -6,6 +6,12 @@ const notelistSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    // username: {
+    //   type: String,
+    //   required: true,
+    //   trim: true,
+    // },
+   
     no: {
       type: Number,
       trim: true,
@@ -23,7 +29,8 @@ const notelistSchema = mongoose.Schema(
     },
     cr_date: {
       type: Date,
-      maxLength: 50,
+      default: Date.now,
+      get: (createdAt) => moment(createdAt).format('YYYY-MM-DD')
     },
     hit: {
       type: Number,
@@ -55,7 +62,9 @@ const notelistSchema = mongoose.Schema(
     publisher: {
       type: String,
     },
-
+    isbn:{
+      type: Number,
+    },
     authors: {
       type: Array,
     },
