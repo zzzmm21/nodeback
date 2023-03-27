@@ -183,9 +183,10 @@ router.get('/api/meeting/:no/members', async (req, res) => {
     }
     const members = meeting.members.map((member) => ({
       name: member.user.name,
+      userId: member.user._id,
       role: member.role,
       status: member.status,
-      gender: member.gender,
+      gender: member.user.gender,
       file: member.file,
       nickname: member.nickname,
       age: calculateAge(member.user.date),
@@ -215,6 +216,35 @@ router.get('/api/meeting/:no/orders', async (req, res) => {
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+// host:meeting admin
+// member status 관리
+// provisional_member->full_member, rejected_member
+router.patch('/meetings/:no/members/:memberId', async (req, res) => {
+  console.log('요청');
+  try {
+    console.log('요청');
+    const { no, memberId } = req.params;
+    const { status } = req.body;
+
+    // meetingAutoId를 사용하여 데이터베이스에서 해당 모임의 정보를 찾습니다.
+    const meeting = await Meeting.findOne({
+      autoIncrementField: no,
+    });
+    const member = meeting.members.find((m) => m.user.toString() === memberId);
+    console.log(member);
+
+    // status 값을 업데이트합니다.
+    member.status = status;
+
+    // 데이터베이스에 변경 사항을 저장합니다.
+    await meeting.save();
+
+    res.send({ message: '멤버 상태가 변경되었습니다.' });
+  } catch (error) {
+    res.status(500).send({ message: '오류가 발생했습니다.' });
   }
 });
 

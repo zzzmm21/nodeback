@@ -46,11 +46,13 @@ const faqArticleSchema = mongoose.Schema(
 
 faqArticleSchema.pre('save', async function (next) {
   const doc = this;
-  const lastDoc = await FAQArticle.findOne().sort({ autoIncrementField: -1 });
-  if (lastDoc && lastDoc.autoIncrementField) {
-    doc.autoIncrementField = lastDoc.autoIncrementField + 1;
-  } else {
-    doc.autoIncrementField = 1;
+  if (doc.isNew) {
+    const lastDoc = await FAQArticle.findOne().sort({ autoIncrementField: -1 });
+    if (lastDoc && lastDoc.autoIncrementField) {
+      doc.autoIncrementField = lastDoc.autoIncrementField + 1;
+    } else {
+      doc.autoIncrementField = 1;
+    }
   }
   next();
 });
