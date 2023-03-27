@@ -2,23 +2,23 @@ const mongoose = require('mongoose');
 
 const reviewCommentSchema = mongoose.Schema(
   {
-    autoIncrementField: { type: Number, default: 0 },
-    creator: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      autoIncrementField: { type: Number, default: 0 },
+      creator: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+      content: {
+        type: String,
+        // required: true,
+      },
+      articleId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'FAQArticle',
+        required: true,
+      },
     },
-    content: {
-      type: String,
-      // required: true,
-    },
-    articleId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'FAQArticle',
-      required: true,
-    },
-  },
-  { timestamps: true }
-);
+    { timestamps: true }
+  );
 
 reviewCommentSchema.pre('save', async function (next) {
   const doc = this;
