@@ -19,8 +19,13 @@ const reviewArticleSchema = mongoose.Schema(
       type: String,
       // required: true,
     },
+    hashtags: {
+      type: [String],
+      // required: true,
+    },
     hitCount: {
       type: Number,
+      default: 0,
       // required: true,
     },
     comments: [
@@ -35,13 +40,15 @@ const reviewArticleSchema = mongoose.Schema(
 
 reviewArticleSchema.pre('save', async function (next) {
   const doc = this;
-  const lastDoc = await ReviewArticle.findOne().sort({
-    autoIncrementField: -1,
-  });
-  if (lastDoc && lastDoc.autoIncrementField) {
-    doc.autoIncrementField = lastDoc.autoIncrementField + 1;
-  } else {
-    doc.autoIncrementField = 1;
+  if (doc.isNew) {
+    const lastDoc = await ReviewArticle.findOne().sort({
+      autoIncrementField: -1,
+    });
+    if (lastDoc && lastDoc.autoIncrementField) {
+      doc.autoIncrementField = lastDoc.autoIncrementField + 1;
+    } else {
+      doc.autoIncrementField = 1;
+    }
   }
   next();
 });

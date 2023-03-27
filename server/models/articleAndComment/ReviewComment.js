@@ -22,13 +22,15 @@ const reviewCommentSchema = mongoose.Schema(
 
 reviewCommentSchema.pre('save', async function (next) {
   const doc = this;
-  const lastDoc = await ReviewComment.findOne().sort({
-    autoIncrementField: -1,
-  });
-  if (lastDoc && lastDoc.autoIncrementField) {
-    doc.autoIncrementField = lastDoc.autoIncrementField + 1;
-  } else {
-    doc.autoIncrementField = 1;
+  if (doc.isNew) {
+    const lastDoc = await ReviewComment.findOne().sort({
+      autoIncrementField: -1,
+    });
+    if (lastDoc && lastDoc.autoIncrementField) {
+      doc.autoIncrementField = lastDoc.autoIncrementField + 1;
+    } else {
+      doc.autoIncrementField = 1;
+    }
   }
   next();
 });

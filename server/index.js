@@ -21,6 +21,12 @@ app.use(meetingRoutes);
 const faqRoutes = require('./routes/faqBoard');
 app.use(faqRoutes);
 
+const meetingBoardRoutes = require('./routes/meetingBoard');
+app.use(meetingBoardRoutes);
+
+const reviewRoutes = require('./routes/reviewBoard');
+app.use(reviewRoutes);
+
 app.use(router);
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -205,7 +211,6 @@ app.put('/api/users/me', auth, (req, res) => {
   });
 });
 
-
 app.get('/api/notelist', async (req, res) => {
   try {
     const accounts = await Notelist.find();
@@ -288,10 +293,15 @@ app.delete('/api/notelist/:id', (req, res) => {
       console.log('Delete complete');
 
       // Find the corresponding user and update the postCount field by subtracting 1
-      User.findByIdAndUpdate(result.author, { $inc: { postCount: -1 } }, { new: true }, (err, updatedUser) => {
-        if (err) return res.status(500).send(err);
-        res.json({ message: 'Delete complete', user: updatedUser });
-      });
+      User.findByIdAndUpdate(
+        result.author,
+        { $inc: { postCount: -1 } },
+        { new: true },
+        (err, updatedUser) => {
+          if (err) return res.status(500).send(err);
+          res.json({ message: 'Delete complete', user: updatedUser });
+        }
+      );
     }
   });
 });
@@ -501,32 +511,51 @@ app.get('/search', auth, async (req, res) => {
       author: userId, // add filter to only return notes by the authenticated user
     });
     res.json(result);
-
-  } catch (err) { 
+  } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Internal server error' });
   }
-
 });
 
 app.get('/api/category', auth, (req, res) => {
   const userId = req.user._id;
-  try{
-    Notelist.aggregate([
-      { $match: { author: userId } },
-      { $group: { _id: "$category", count: { $sum: 1 } } },
-      { $group: { _id: null, categories: { $push: { category: "$_id", count: "$count" } }, totalCount: { $sum: "$count" } } },
-      { $unwind: "$categories" },
-      { $project: { _id: 0, category: "$categories.category", count: "$categories.count", percentage: { $multiply: [ { $divide: [ "$categories.count", "$totalCount" ] }, 100 ] } } }
-    ], (err, result) => {
-      if (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Internal server error' });
-      } else {
-        res.json(result);
-        console.log(result);
+  try {
+    Notelist.aggregate(
+      [
+        { $match: { author: userId } },
+        { $group: { _id: '$category', count: { $sum: 1 } } },
+        {
+          $group: {
+            _id: null,
+            categories: { $push: { category: '$_id', count: '$count' } },
+            totalCount: { $sum: '$count' },
+          },
+        },
+        { $unwind: '$categories' },
+        {
+          $project: {
+            _id: 0,
+            category: '$categories.category',
+            count: '$categories.count',
+            percentage: {
+              $multiply: [
+                { $divide: ['$categories.count', '$totalCount'] },
+                100,
+              ],
+            },
+          },
+        },
+      ],
+      (err, result) => {
+        if (err) {
+          console.error(err);
+          res.status(500).json({ message: 'Internal server error' });
+        } else {
+          res.json(result);
+          console.log(result);
+        }
       }
-    });
+    );
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Internal server error' });

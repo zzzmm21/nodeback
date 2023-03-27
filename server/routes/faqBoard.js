@@ -10,6 +10,7 @@ router.post(
   '/api/meeting/:no/faqArticle/create',
   noFileUpload.none(),
   (req, res) => {
+    console.log(req.body);
     const { title, content, creator, hashtags } = req.body;
     const meetingNo = req.params.no;
 
@@ -39,6 +40,10 @@ router.post(
 // 전체 게시글 조회(리스트)
 router.get('/api/meeting/:no/faqArticle', async (req, res) => {
   try {
+    // 페이지네이션
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 5;
+
     const meetingNo = req.params.no;
     const meeting = await Meeting.findOne({
       autoIncrementField: meetingNo,
@@ -50,8 +55,16 @@ router.get('/api/meeting/:no/faqArticle', async (req, res) => {
 
     const faqArticles = await FAQArticle.find({ meeting: meeting._id })
       .sort({ createdAt: -1 })
-      .populate('creator', 'name');
-    res.status(200).json(faqArticles);
+      .populate('creator', 'name')
+      .skip((page - 1) * pageSize)
+      .limit(pageSize);
+
+    const totalArticles = await FAQArticle.countDocuments({
+      meeting: meeting._id,
+    });
+    const totalPages = Math.ceil(totalArticles / pageSize);
+
+    res.status(200).json({ faqArticles, totalPages });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -100,25 +113,29 @@ router.delete('/api/meeting/:no/faqArticle/:id', async (req, res) => {
 });
 
 // 특정 게시글 수정
-router.patch('/api/meeting/:no/faqArticle/:id', async (req, res) => {
-  try {
-    const { title, content, hashtags } = req.body;
-    const articleId = req.params.id;
+router.patch(
+  '/api/meeting/:no/faqArticle/:id',
+  noFileUpload.none(),
+  async (req, res) => {
+    try {
+      const { title, content, hashtags } = req.body;
+      const articleId = req.params.id;
 
-    const faqArticle = await FAQArticle.findByIdAndUpdate(
-      articleId,
-      { title, content, hashtags },
-      { new: true }
-    );
+      const faqArticle = await FAQArticle.findByIdAndUpdate(
+        articleId,
+        { title, content, hashtags },
+        { new: true }
+      );
 
-    if (!faqArticle) {
-      return res.status(404).json({ message: 'FAQ article not found' });
+      if (!faqArticle) {
+        return res.status(404).json({ message: 'FAQ article not found' });
+      }
+
+      res.status(200).json({ message: 'FAQ article updated successfully' });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
-
-    res.status(200).json({ message: 'FAQ article updated successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
   }
-});
+);
 
 module.exports = router;
