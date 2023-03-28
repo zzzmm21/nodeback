@@ -34,7 +34,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const io = require('socket.io')(server, {
   cors: {
-    origin: '43.201.37.40',
+    origin: '*',
     methods: ['GET', 'POST'],
     allowedHeaders: ['my-custom-header'],
     credentials: true,
