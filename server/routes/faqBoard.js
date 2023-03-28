@@ -11,7 +11,7 @@ router.post(
   '/api/meeting/:no/faqArticle/create',
   noFileUpload.none(),
   (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     const { title, content, creator, hashtags } = req.body;
     const meetingNo = req.params.no;
 

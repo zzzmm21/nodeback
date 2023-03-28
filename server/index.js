@@ -580,7 +580,7 @@ app.get('/api/category', auth, (req, res) => {
 //// 댓글
 
 app.post('/api/Bcomments', (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
 
   // extract the data sent by the client
   const { content } = req.body;
@@ -627,7 +627,7 @@ app.get('/api/Book', async (req, res) => {
   try {
     const accounts = await Book.find();
     res.json(accounts);
-    console.log(accounts);
+    // console.log(accounts);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

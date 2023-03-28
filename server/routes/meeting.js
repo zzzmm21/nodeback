@@ -72,7 +72,7 @@ router.get('/api/meeting/all', (req, res) => {
   Meeting.find({})
     .populate('creator')
     .then((meetings) => {
-      console.log(meetings);
+      // console.log(meetings);
       const transformedMeetings = meetings.map((meeting) => {
         return {
           ...meeting._doc,
