@@ -66,14 +66,14 @@ const meetingSchema = mongoose.Schema(
       novel: {
         type: Boolean,
         // required: true,
-      },  
-      poem: { 
-        type: Boolean,  
-        // required: true,  
-      },  
-      science: {  
-        type: Boolean,  
-        // required: true,  
+      },
+      poem: {
+        type: Boolean,
+        // required: true,
+      },
+      science: {
+        type: Boolean,
+        // required: true,
       },
     },
     genderOpened: {

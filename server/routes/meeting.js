@@ -68,15 +68,18 @@ router.post('/api/meeting/create', upload, (req, res) => {
 
 // 모든 모임 조회
 router.get('/api/meeting/all', (req, res) => {
+  console.log('요청');
   Meeting.find({})
     .populate('creator')
     .then((meetings) => {
+      console.log(meetings);
       const transformedMeetings = meetings.map((meeting) => {
         return {
           ...meeting._doc,
-          creatorName: meeting.creator.name,
+          creatorName: meeting.creator ? meeting.creator.name : 'Unknown',
         };
       });
+      console.log(transformedMeetings);
       res.status(200).json({ success: true, meetings: transformedMeetings });
     })
     .catch((err) => {
