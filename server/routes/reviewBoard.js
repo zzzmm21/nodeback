@@ -95,7 +95,7 @@ router.get('/api/meeting/:no/reviewArticle/:id', async (req, res) => {
 
     const reviewArticle = await ReviewArticle.findById(articleId).populate(
       'creator',
-      'name'
+      'name imgpath'
     );
 
     if (!reviewArticle) {
