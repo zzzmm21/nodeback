@@ -151,22 +151,39 @@ router.post('/api/meeting/:no/register', uploadmt.none(), (req, res) => {
   // console.log(`meetingNo: ${meetingNo}`);
   // console.log(`userId: ${req.body.userId}`);
 
-  const newMember = {
-    user: req.body.userId,
-  };
+  Meeting.findOne({ autoIncrementField: meetingNo }, (err, meeting) => {
+    if (err) return res.json({ success: false, err });
 
-  Meeting.findOneAndUpdate(
-    { autoIncrementField: meetingNo }, // 쿼리 객체
-    { $push: { members: newMember } }, // 업데이트 객체
-    { new: true },
-    (err, result) => {
-      if (err) return res.json({ success: false, err });
-      return res.status(200).json({
-        success: true,
-        meetingNo: result._id,
+    const isMember = meeting.members.some(
+      (member) => member.user.toString() === req.body.userId
+    );
+
+    if (isMember) {
+      // 중복 회원 처리
+      return res.status(400).json({
+        success: false,
+        message: '이미 가입신청 했습니다',
       });
+    } else {
+      // 회원 가입 처리
+      const newMember = {
+        user: req.body.userId,
+      };
+
+      Meeting.findOneAndUpdate(
+        { autoIncrementField: meetingNo },
+        { $push: { members: newMember } },
+        { new: true },
+        (err, result) => {
+          if (err) return res.json({ success: false, err });
+          return res.status(200).json({
+            success: true,
+            meetingNo: result._id,
+          });
+        }
+      );
     }
-  );
+  });
 });
 
 // 나이계산
