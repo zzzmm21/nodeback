@@ -34,7 +34,6 @@ const userSchema = mongoose.Schema(
       },
       path: {
         type: String,
-        default: 1
       },
     },
     token: {
@@ -49,7 +48,6 @@ const userSchema = mongoose.Schema(
     },
     bookGoal: {
       type: Number,
-      
     },
     notes: [
       {
