@@ -140,8 +140,8 @@ router.patch(
   '/api/meeting/:no/meetingArticle/:id',
   noFileUpload.none(),
   async (req, res) => {
-    console.log('요청이 수신되었습니다.'); // 요청 수신 로그 출력
-    console.log(req.body);
+    // console.log('요청이 수신되었습니다.'); // 요청 수신 로그 출력
+    // console.log(req.body);
     try {
       const { title, content, hashtags } = req.body;
       const articleId = req.params.id;

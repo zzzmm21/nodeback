@@ -116,7 +116,7 @@ router.get('/api/meeting/:no/reviewArticle/:id', async (req, res) => {
 
 // 특정 reviewArticle 삭제
 router.delete('/api/meeting/:no/reviewArticle/:id', async (req, res) => {
-  console.log('요청이 수신되었습니다.');
+  // console.log('요청이 수신되었습니다.');
   try {
     const articleId = req.params.id;
     const reviewArticle = await ReviewArticle.findById(articleId);
@@ -137,9 +137,8 @@ router.patch(
   '/api/meeting/:no/reviewArticle/:id',
   noFileUpload.none(),
   async (req, res) => {
-    console.log('요청이 수신되었습니다.');
-    s;
-    console.log(req.body);
+    // console.log('요청이 수신되었습니다.');
+    // console.log(req.body);
     try {
       const { title, content, hashtags } = req.body;
       const articleId = req.params.id;

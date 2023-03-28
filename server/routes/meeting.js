@@ -22,7 +22,7 @@ const upload = multer({ storage: storage }).single('imgFile');
 
 router.post('/api/meeting/create', upload, (req, res) => {
   // console.log(req.file); // imgFile 필드의 파일 데이터
-  console.log(req.file); // 모든 파일 데이터
+  // console.log(req.file); // 모든 파일 데이터
   const meetingData = {
     ...req.body,
     imgFile: req.file.path,
@@ -68,7 +68,7 @@ router.post('/api/meeting/create', upload, (req, res) => {
 
 // 모든 모임 조회
 router.get('/api/meeting/all', (req, res) => {
-  console.log('요청');
+  // console.log('요청');
   Meeting.find({})
     .populate('creator')
     .then((meetings) => {
@@ -79,7 +79,7 @@ router.get('/api/meeting/all', (req, res) => {
           creatorName: meeting.creator ? meeting.creator.name : 'Unknown',
         };
       });
-      console.log(transformedMeetings);
+      // console.log(transformedMeetings);
       res.status(200).json({ success: true, meetings: transformedMeetings });
     })
     .catch((err) => {
@@ -148,8 +148,8 @@ router.get('/api/users/:userId/meetings', async (req, res) => {
 router.post('/api/meeting/:no/register', uploadmt.none(), (req, res) => {
   const meetingNo = req.params.no;
 
-  console.log(`meetingNo: ${meetingNo}`);
-  console.log(`userId: ${req.body.userId}`);
+  // console.log(`meetingNo: ${meetingNo}`);
+  // console.log(`userId: ${req.body.userId}`);
 
   const newMember = {
     user: req.body.userId,
