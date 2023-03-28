@@ -131,35 +131,46 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // upload 함수 내보내기
 app.post('/api/users/register', (req, res) => {
-  // 파일 업로드 처리
+  // handle file upload
   upload(req, res, (err) => {
     if (err) {
-      // 업로드 오류 처리
-      if (err instanceof multer.MulterError) {
-        return res.json({ success: false, message: '파일 업로드 오류 발생' });
+      // handle upload errors
+      if (err instanceof multer. MulterError) {
+        return res.json({ success: false, message: 'Error uploading file' });
       } else {
-        return res.json({ success: false, message: '알 수 없는 오류 발생' });
+        return res.json({ success: false, message: 'An unknown error occurred' });
       }
     }
 
-    // 클라이언트에서 보낸 데이터 추출
+    // extract the data sent by the client
     const { name, email, password, nickname, gender, date } = req.body;
 
-    // User 모델 생성
-    const user = new User({
-      name,
-      email,
-      password,
-      nickname,
-      gender,
-      date,
-      imgpath: {
-        contentType: req.file.mimetype,
-        path: req.file.path,
-      },
-    });
+    // Create User model
+    let user;
+    if (req.file) {
+      user = new User({
+        name,
+        email,
+        password,
+        nickname,
+        gender,
+        date,
+        imgpath: {
+          path: req.file.path,
+        },
+      });
+    } else {
+      user = new User({
+        name,
+        email,
+        password,
+        nickname,
+        gender,
+        date,
+      });
+    }
 
-    // User 모델 저장
+    // Save User model
     user.save((err, doc) => {
       if (err) {
         return res.json({ success: false, err });

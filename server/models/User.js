@@ -34,6 +34,7 @@ const userSchema = mongoose.Schema(
       },
       path: {
         type: String,
+        default: 1
       },
     },
     token: {
