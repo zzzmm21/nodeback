@@ -80,7 +80,7 @@ router.get('/api/meeting/:no/faqArticle/:id', async (req, res) => {
 
     const faqArticle = await FAQArticle.findById(articleId).populate(
       'creator',
-      'name'
+      'name imgpath'
     );
 
     if (!faqArticle) {

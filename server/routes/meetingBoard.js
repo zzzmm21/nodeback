@@ -99,7 +99,7 @@ router.get('/api/meeting/:no/meetingArticle/:id', async (req, res) => {
 
     const meetingArticle = await MeetingArticle.findById(articleId).populate(
       'creator',
-      'name'
+      'name imgpath'
     );
 
     if (!meetingArticle) {
