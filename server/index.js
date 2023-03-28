@@ -6,13 +6,14 @@ const bodyParser = require('body-parser');
 const { User } = require('./models/User');
 const { auth } = require('./middleware/auth');
 const { Category } = require('./models/Category');
+const { BComment } = require('./models/BComment');
+const { Book } = require('./models/Book');
 const cors = require('cors');
 const socketio = require('socket.io');
 const server = http.createServer(app);
 const { addUser, removeUser, getUser, getUsersInRoom } = require('./users.js');
 const router = require('./router');
-const bcommentRouter = require('./routes/bcomment');
-app.use(bcommentRouter);
+
 
 const meetingRoutes = require('./routes/meeting');
 app.use(meetingRoutes);
@@ -557,5 +558,66 @@ app.get('/api/category', auth, (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+
+//// 댓글
+
+
+app.post('/api/Bcomments', (req, res) => {
+  console.log(req.body);
+
+  // extract the data sent by the client
+  const { content } = req.body;
+
+  const newComment = new BComment({
+    content
+  });
+
+  newComment.save((err, doc) => {
+    if (err) {
+      return res.json({ success: false, err });
+    }
+    res.status(200).json({
+      success: true
+    });
+  });
+});
+app.get('/api/Bcomments', async (req, res) => {
+  try {
+    const accounts = await BComment.find();
+    res.json(accounts);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+app.delete('/api/comments/:id', (req, res) => {
+  const id = req.params.id;
+
+  // 데이터베이스에서 해당 ID의 댓글을 삭제하는 작업 수행
+  Comment.findByIdAndDelete(id)
+    .then(() => {
+      res.send({ message: '댓글이 성공적으로 삭제되었습니다.' });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send({ message: '댓글 삭제에 실패하였습니다.' });
+    });
+});
+
+
+/// Book
+
+app.get('/api/Book', async (req, res) => {
+  try {
+    const accounts = await Book.find();
+    res.json(accounts);
+    console.log(accounts)
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
